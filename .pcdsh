@@ -1,0 +1,26 @@
+# change dir to android project
+
+function pcd () 
+{
+    projects=`cat $ANDROID_BUILD_TOP/.repo/project.list | grep $1`
+    projects=($projects)
+    project=${projects[0]}
+    if [ ${#projects[@]} -gt 1 ]; then
+        i=0
+        for proj in ${projects[@]}
+        do
+            echo $i $proj
+            i=$((i+1))
+        done
+        read index
+        if [ -z $index ]; then
+           return 
+        fi
+        if [ $index -le ${#projects[@]} ]; then
+            project=${projects[$index]}
+        fi
+    fi
+    if [ -d $ANDROID_BUILD_TOP/$project ]; then
+        cd $ANDROID_BUILD_TOP/$project
+    fi
+}
