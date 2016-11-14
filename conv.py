@@ -95,12 +95,12 @@ iteration = train.num_examples/batch_size
 var_init = tf.initialize_all_variables()
 with tf.Session() as sess:
     sess.run(var_init)
-    before = time.clock()
+    before = time.time()
     for i in range(iteration):
         images,labels = train.next_batch(batch_size)
         images = images.reshape(batch_size,28,28,1)
         tt = sess.run(train_step,feed_dict={x:images,y_:labels})
-    print time.clock()-before
+    print time.time()-before
     v = sess.run(out_max,feed_dict={xv:test.images[0:test_size].reshape(test_size,28,28,1)})
     a=test.labels[0:test_size]
     t = v == a
