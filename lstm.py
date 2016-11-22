@@ -46,7 +46,7 @@ loss = tf.reduce_sum(loss,1)
 
 loss = tf.reduce_mean(loss)
 
-min = tf.train.AdadeltaOptimizer(2.0).minimize(loss)
+min = tf.train.AdadeltaOptimizer(1.0).minimize(loss)
 
 with tf.Session() as sess:
     saver = tf.train.Saver()
