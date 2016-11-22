@@ -7,7 +7,7 @@ def generate_data(size):
     meet = False
 
     for i in range(size):
-        x = np.random.randint(10)
+        x = np.random.randint(6)
         _inputs[i]=x
         if(x == 0):
             if(meet):

@@ -1,4 +1,6 @@
 import time
+import os
+import sys
 
 import numpy as np
 import tensorflow as tf
@@ -44,27 +46,35 @@ loss = tf.reduce_sum(loss,1)
 
 loss = tf.reduce_mean(loss)
 
-min = tf.train.AdadeltaOptimizer(5.0).minimize(loss)
+min = tf.train.AdadeltaOptimizer(2.0).minimize(loss)
 
 with tf.Session() as sess:
-    tf.initialize_all_variables().run()
-    zstate = sess.run(initial_state)
-    istate = zstate
-    loops = num_samples//batch_size 
-    for j in range(loops*2):
-        i = j % loops
-        r,m,istate = sess.run([loss,min,state],feed_dict={inputs:_inputs[i*batch_size:(i+1)*batch_size,:],labels:_labels[i*batch_size:(i+1)*batch_size,:],initial_state:istate})
-        if(_labels[i][0] == 1):
-            istate = zstate
-    print(r)
+    saver = tf.train.Saver()
+    if(os.path.exists("chkpt")):
+        saver.restore(sess,"chkpt")
+    else:
+        tf.initialize_all_variables().run()
+        zstate = sess.run(initial_state)
+        istate = zstate
+        loops = num_samples//batch_size
+        for j in range(loops):
+            i = j % loops
+            r,m,istate = sess.run([loss,min,state],feed_dict={inputs:_inputs[i*batch_size:(i+1)*batch_size,:],labels:_labels[i*batch_size:(i+1)*batch_size,:],initial_state:istate})
+            if(_labels[i][0] == 1):
+                istate = zstate
+        saver.save(sess,"chkpt")
+        print(r)
 
     zstate = sess.run(test_state)
     istate = zstate
     # test = [1,1,2,1,3,1,1,0,2,1,0,1,1,0,2,3,0,1,3]
     test = np.loadtxt("_tinputs")
     target = np.loadtxt("_tlabels")
-    start = 0
-    len = 15
+    start = 127
+    if(len(sys.argv) == 2):
+        start = int(sys.argv[1])
+
+    len = 10
     data = test[start:start+len]
     t = target[start:start+len]
     print(data)
