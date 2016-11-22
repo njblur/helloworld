@@ -8,7 +8,7 @@ _labels = np.loadtxt("_labels").reshape([-1,1])
 
 num_samples = len(_inputs)
 
-batch_size = 40
+batch_size = 1
 hidden_size = 100
 
 lstm_cell = tf.nn.rnn_cell.LSTMCell(hidden_size)
@@ -48,22 +48,32 @@ min = tf.train.AdadeltaOptimizer(1.0).minimize(loss)
 
 with tf.Session() as sess:
     tf.initialize_all_variables().run()
-    istate = sess.run(initial_state)
-    loops = num_samples//batch_size
+    zstate = sess.run(initial_state)
+    istate = zstate
+    loops = num_samples//batch_size - 1000
     for j in range(loops):
         i = j % loops
         r,m,istate = sess.run([loss,min,state],feed_dict={inputs:_inputs[i*batch_size:(i+1)*batch_size,:],labels:_labels[i*batch_size:(i+1)*batch_size,:],initial_state:istate})
+        if(_labels[i][0] == 1):
+            istate = zstate
     print(r)
-    istate = sess.run(test_state)
 
+    zstate = sess.run(test_state)
+    istate = zstate
     # test = [1,1,2,1,3,1,1,0,2,1,0,1,1,0,2,3,0,1,3]
     test = np.loadtxt("_inputs")
     target = np.loadtxt("_labels")
-    data = test[0:20]
-    t = target[0:20]
+    start = -1090
+    len = 15
+    data = test[start:start+len]
+    t = target[start:start+len]
     print(data)
     print(t)
 
     for t in data:
         r,istate = sess.run([tactive,tstate],feed_dict={inputs:[[t]],test_state:istate})
         print(r)
+        if(r > 0.5):
+            print("reset state")
+            istate = zstate
+
