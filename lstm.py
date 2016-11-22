@@ -11,7 +11,7 @@ num_samples = len(_inputs)
 batch_size = 1
 hidden_size = 100
 
-lstm_cell = tf.nn.rnn_cell.LSTMCell(hidden_size)
+lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_size,forget_bias=1.0)
 lstm_drop = tf.nn.rnn_cell.DropoutWrapper(lstm_cell,output_keep_prob=1.0)
 initial_state = lstm_drop.zero_state(batch_size, tf.float32)
 test_state = lstm_cell.zero_state(1, tf.float32)
@@ -24,7 +24,7 @@ state = initial_state
 (cell_output, state) = lstm_drop(inputs_drop, state)
 
 weights = tf.Variable(tf.zeros([hidden_size,1]))
-bias = tf.Variable(3.0)
+bias = tf.Variable(0.0)
 
 max = tf.matmul(cell_output,weights)+bias
 
@@ -44,14 +44,14 @@ loss = tf.reduce_sum(loss,1)
 
 loss = tf.reduce_mean(loss)
 
-min = tf.train.AdadeltaOptimizer(1.0).minimize(loss)
+min = tf.train.AdadeltaOptimizer(5.0).minimize(loss)
 
 with tf.Session() as sess:
     tf.initialize_all_variables().run()
     zstate = sess.run(initial_state)
     istate = zstate
-    loops = num_samples//batch_size - 1000
-    for j in range(loops):
+    loops = num_samples//batch_size 
+    for j in range(loops*2):
         i = j % loops
         r,m,istate = sess.run([loss,min,state],feed_dict={inputs:_inputs[i*batch_size:(i+1)*batch_size,:],labels:_labels[i*batch_size:(i+1)*batch_size,:],initial_state:istate})
         if(_labels[i][0] == 1):
@@ -61,19 +61,21 @@ with tf.Session() as sess:
     zstate = sess.run(test_state)
     istate = zstate
     # test = [1,1,2,1,3,1,1,0,2,1,0,1,1,0,2,3,0,1,3]
-    test = np.loadtxt("_inputs")
-    target = np.loadtxt("_labels")
-    start = -1090
+    test = np.loadtxt("_tinputs")
+    target = np.loadtxt("_tlabels")
+    start = 0
     len = 15
     data = test[start:start+len]
     t = target[start:start+len]
     print(data)
     print(t)
+    result = []
 
     for t in data:
         r,istate = sess.run([tactive,tstate],feed_dict={inputs:[[t]],test_state:istate})
-        print(r)
+        result.append(r[0,0])
         if(r > 0.5):
             print("reset state")
             istate = zstate
+    print(result)
 
