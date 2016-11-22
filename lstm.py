@@ -73,10 +73,10 @@ with tf.Session() as sess:
     start = 127
     if(len(sys.argv) == 2):
         start = int(sys.argv[1])
-
-    len = 10
-    data = test[start:start+len]
-    t = target[start:start+len]
+    end = start+10
+    assert  end < len(test)
+    data = test[start:end]
+    t = target[start:end]
     print(data)
     print(t)
     result = []
