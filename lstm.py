@@ -45,11 +45,14 @@ loss = -labels*tf.log(active)-(1-labels)*tf.log(1-active)
 loss = tf.reduce_sum(loss,1)
 
 loss = tf.reduce_mean(loss)
+tf.scalar_summary("loss",loss)
+merged = tf.merge_all_summaries()
 
 min = tf.train.AdadeltaOptimizer(1.0).minimize(loss)
 
 with tf.Session() as sess:
     saver = tf.train.Saver()
+    writer = tf.train.SummaryWriter("log",sess.graph)
     if(os.path.exists("chkpt")):
         saver.restore(sess,"chkpt")
     else:
@@ -59,7 +62,7 @@ with tf.Session() as sess:
         loops = num_samples//batch_size
         for j in range(loops):
             i = j % loops
-            r,m,istate = sess.run([loss,min,state],feed_dict={inputs:_inputs[i*batch_size:(i+1)*batch_size,:],labels:_labels[i*batch_size:(i+1)*batch_size,:],initial_state:istate})
+            r,m,istate,summary = sess.run([loss,min,state,merged],feed_dict={inputs:_inputs[i*batch_size:(i+1)*batch_size,:],labels:_labels[i*batch_size:(i+1)*batch_size,:],initial_state:istate})
             if(_labels[i][0] == 1):
                 istate = zstate
         saver.save(sess,"chkpt")
